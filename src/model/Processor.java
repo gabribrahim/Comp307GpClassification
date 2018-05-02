@@ -6,6 +6,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Random;
 
 import javax.swing.tree.TreeNode;
 
@@ -50,19 +52,49 @@ public class Processor  extends GPProblem {
     @SuppressWarnings("boxing")
     public static  ArrayList<Double>INPUT_2 = new ArrayList<>(Arrays.asList( 35.0d, 24.0d, 1.0d, 11.0d, 16.0d));
 
-    public static  ArrayList<Double> OUTPUT = new ArrayList<>(Arrays.asList( 829.0d, 141.0d, 467.0d, 1215.0d, 1517.0d));
+    public static  ArrayList<Integer> OUTPUT = new ArrayList<>();
     public GPConfiguration config = getGPConfiguration();
     private Variable _xVariable;
     private Variable _yVariable;
+    
+    // Each Feature has Instance & ArrayList [ sameName+Capital I]
+    private Variable clumpThickness;
+    public ArrayList<Integer> clumpThicknessI			= new ArrayList<>();
+    private Variable uCellSize;
+    public ArrayList<Integer> uCellSizeI 				= new ArrayList<>();
+    private Variable uCellShape;
+    public ArrayList<Integer> uCellShapeI 				= new ArrayList<>();
+    private Variable mAdhesion;
+    public ArrayList<Integer> mAdhesionI 				= new ArrayList<>();
+    private Variable seCellSize;
+    public ArrayList<Integer> seCellSizeI 				= new ArrayList<>();
+    private Variable bNuclei;
+    public ArrayList<Integer> bNucleiI 					= new ArrayList<>();
+    private Variable bChromatin;
+    public ArrayList<Integer> bChromatinI 				= new ArrayList<>();
+    private Variable nNuclei;
+    public ArrayList<Integer> nNucleiI 					= new ArrayList<>();
+    private Variable mitosis;
+    public ArrayList<Integer> mitosisI 					= new ArrayList<>();
+    
+    // Training & Test Data Sets
+    public ArrayList<ArrayList<Integer>> trainingSet 	= new ArrayList<>();
+    public ArrayList<ArrayList<Integer>> testSet		= new ArrayList<>();
+    //Inputs are mapped to their column in the file in the LinkedHashMap below {used in Fitness Calculation}
+    public LinkedHashMap<Integer,ArrayList<Integer>> inputsColumnMapping = new LinkedHashMap<>();
+    //Variables are mapped to their column in the file in the LinkedHashMap below {used in Fitness Calculation}
+    public LinkedHashMap<Integer,Variable> variablesColumnMapping = new LinkedHashMap<>();
+    
     public GPGenotype gp;
     public MainController uiWin	;
     public int epochCounter;
     public EventManager eventManager  		= new EventManager();
+    
+    
+    
     public Processor() throws InvalidConfigurationException {
         super(new GPConfiguration());
         Configuration.reset();
-        
-    	getInputsFromFile();
         _xVariable = Variable.create(config, "X", CommandGene.DoubleClass);
         
 
@@ -81,10 +113,50 @@ public class Processor  extends GPProblem {
         config.setPreservFittestIndividual(true);
         config.setKeepPopulationSizeConstant(true);
 //        config.setProgramCreationMaxTries(-1);
-        config.setFitnessFunction(new RegressionFitnessFunction(INPUT_1, OUTPUT, _xVariable));
+//        config.setFitnessFunction(new RegressionFitnessFunction(INPUT_1, OUTPUT, _xVariable));
         config.setStrictProgramCreation(true);
     }
 
+    
+	public void initialiseColumns() throws InvalidConfigurationException {
+	    clumpThickness						= Variable.create(config, "clumpThickness", CommandGene.IntegerClass);
+	    uCellSize							= Variable.create(config, "uCellSize", CommandGene.IntegerClass);
+	    uCellShape							= Variable.create(config, "uCellShape", CommandGene.IntegerClass);
+	    mAdhesion							= Variable.create(config, "mAdhesion", CommandGene.IntegerClass);
+	    seCellSize							= Variable.create(config, "seCellSize", CommandGene.IntegerClass);
+	    bNuclei								= Variable.create(config, "bNuclei", CommandGene.IntegerClass);
+	    bChromatin							= Variable.create(config, "bChromatin", CommandGene.IntegerClass);
+	    nNuclei								= Variable.create(config, "nNuclei", CommandGene.IntegerClass);
+	    mitosis								=  Variable.create(config, "mitosis", CommandGene.IntegerClass);
+	    //Column1
+		variablesColumnMapping.put(1, clumpThickness);
+		inputsColumnMapping.put(1, clumpThicknessI);
+	    //Column2
+		variablesColumnMapping.put(2, uCellSize);
+		inputsColumnMapping.put(2, uCellSizeI);
+	    //Column3
+		variablesColumnMapping.put(3, uCellShape);
+		inputsColumnMapping.put(3, uCellShapeI);	
+	    //Column4
+		variablesColumnMapping.put(4, mAdhesion);
+		inputsColumnMapping.put(4, mAdhesionI);
+	    //Column5
+		variablesColumnMapping.put(5, seCellSize);
+		inputsColumnMapping.put(5, seCellSizeI);
+	    //Column6
+		variablesColumnMapping.put(6, bNuclei);
+		inputsColumnMapping.put(6, bNucleiI);	
+	    //Column7
+		variablesColumnMapping.put(7, bChromatin);
+		inputsColumnMapping.put(7, bChromatinI);		
+	    //Column8
+		variablesColumnMapping.put(8, nNuclei);
+		inputsColumnMapping.put(8, nNucleiI);		
+	    //Column9
+		variablesColumnMapping.put(9, mitosis);
+		inputsColumnMapping.put(9, mitosisI);		
+		
+	}
     public String outputSolution(IGPProgram a_best) {
     	String bestIndividualRep			= "";
         if (a_best == null) {
@@ -234,18 +306,65 @@ public class Processor  extends GPProblem {
     	return predictOutputs;
     	
     }
+    public void populateTrainingInputsAndOutput() {
+    	for(ArrayList<Integer> trainingInstance:trainingSet) {
+    		for (int i =1;i<=9;i++) {
+    			inputsColumnMapping.get(i).add(trainingInstance.get(i));
+    		}
+    		OUTPUT.add(trainingInstance.get(10));
+    	}
+		for (int i =1;i<=9;i++) {
+			System.out.println(variablesColumnMapping.get(i).getName()+inputsColumnMapping.get(i).size());
+		}
+		System.out.println(OUTPUT.size());
+    }
+    public void constructTrainAndTestSets(double trainPercentage) {
+    	// As we read the file if random float is less than trainPercentage then add instance 
+    	// To Training Data set else add to Test Set
+    	// 0.8 trainPercentage if random <0.8 then trainInstance else testInstance
+    	
+    	Random random 						= new Random();
+		String trainingFilePath				= System.getProperty("user.dir").replace('\\', '/') + "/breast-cancer-wisconsin.data";
+		File fileObj 						= new File(trainingFilePath);
+		String line;
+		try (FileReader fileReader = new FileReader(fileObj);				
+				BufferedReader bufferedReader		= new BufferedReader(fileReader);){
+				line								= bufferedReader.readLine();
+				while (line!=null) {
+					ArrayList<Integer> instance		= new ArrayList<>();
+					double randomChoice				= random.nextDouble();
+					String[] lineParts				= line.split(",");
+					for (String str :lineParts) {
+						if (str.equals("?")) {instance.add(-1);continue;}
+						instance.add(Integer.parseInt(str));
+					}
+					if (randomChoice<=trainPercentage) {
+						trainingSet.add(instance);
+					}else {
+						testSet.add(instance);
+					}
+				 	line							= bufferedReader.readLine();
+				}
+		
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.out.println("FILE NOT FOUND !!");
+			
+		}		
+    	System.out.println("Training Set Size="+trainingSet.size()+"\nTest Set Size="+testSet.size());
+    }
 	public void getInputsFromFile() {
 		String trainingFilePath		= System.getProperty("user.dir").replace('\\', '/') + "/regression.txt";
 		File fileObj 								= new File(trainingFilePath);
 		String line									="";
-		ArrayList<Double> outputs					= new ArrayList<>();
+		ArrayList<Integer> outputs					= new ArrayList<>();
 		ArrayList<Double> inputs 					= new ArrayList<>();
 		try (FileReader fileReader = new FileReader(fileObj);
 				BufferedReader bufferedReader		= new BufferedReader(fileReader);){
 				line								= bufferedReader.readLine();
 				while (line!=null) {				
 					String[] lineParts				= line.split(";");
-					outputs.add(Double.parseDouble(lineParts[1]));
+//					outputs.add(Double.parseDouble(lineParts[1]));
 					inputs.add(Double.parseDouble(lineParts[0]));
 				 	line							= bufferedReader.readLine();
 				}
@@ -261,28 +380,36 @@ public class Processor  extends GPProblem {
 	}
 	
 
+	public static void test() throws InvalidConfigurationException {
+		Processor problem = new Processor();
+		problem.initialiseColumns();
+		problem.constructTrainAndTestSets(0.1);		
+		System.out.println(699.0*0.1);
+		problem.populateTrainingInputsAndOutput();
+	}
     public static void main(String[] args) throws Exception {
-        GPProblem problem = new Processor();
-        
-        GPGenotype gp = problem.create();
-        gp.setVerboseOutput(true);
-//        for (int i=0; i<30;i++) {
-//        	System.out.println("CYCLE:"+i);
-//        	gp.evolve(1);
-//        	gp.outputSolution(gp.getAllTimeBest());
-//        }
-        gp.evolve(200);
-        gp.outputSolution(gp.getAllTimeBest());
-        
+    	test();
+//        GPProblem problem = new Processor();
+//        
+//        GPGenotype gp = problem.create();
+//        gp.setVerboseOutput(true);
+////        for (int i=0; i<30;i++) {
+////        	System.out.println("CYCLE:"+i);
+////        	gp.evolve(1);
+////        	gp.outputSolution(gp.getAllTimeBest());
+////        }
+//        gp.evolve(200);
 //        gp.outputSolution(gp.getAllTimeBest());
-        IGPProgram bestP 	= gp.getAllTimeBest();
-        
-        problem.getGPConfiguration().getVariable("X").set(2.75);        
-        System.out.println("\nExecuted 2.75= " + bestP.execute_double(0,new Object[0]));
-        problem.getGPConfiguration().getVariable("X").set(-2.0);        
-        System.out.println("\nExecuted -2= " + bestP.execute_double(0,new Object[0]));        
-        System.out.println("Settings " + gp.getGPConfiguration().getInitStrategy());
-       
+//        
+////        gp.outputSolution(gp.getAllTimeBest());
+//        IGPProgram bestP 	= gp.getAllTimeBest();
+//        
+//        problem.getGPConfiguration().getVariable("X").set(2.75);        
+//        System.out.println("\nExecuted 2.75= " + bestP.execute_double(0,new Object[0]));
+//        problem.getGPConfiguration().getVariable("X").set(-2.0);        
+//        System.out.println("\nExecuted -2= " + bestP.execute_double(0,new Object[0]));        
+//        System.out.println("Settings " + gp.getGPConfiguration().getInitStrategy());
+//       
     }
 
 }
