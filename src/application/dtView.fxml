@@ -17,7 +17,7 @@
    <children>
       <VBox fx:id="SnapShotPreviewVB" prefHeight="685.0" prefWidth="1030.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
          <children>
-            <Label id="MainLabel" fx:id="MainLabel" prefHeight="64.0" prefWidth="1004.0" text="Assignment 2 Question 2">
+            <Label id="MainLabel" fx:id="MainLabel" prefHeight="64.0" prefWidth="1004.0" text="Assignment 2 Question 3">
                <font>
                   <Font name="Andalus" size="29.0" />
                </font>
