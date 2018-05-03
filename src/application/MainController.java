@@ -9,12 +9,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
 
 import org.jgap.InvalidConfigurationException;
 import org.jgap.gp.CommandGene;
 import org.jgap.gp.GPProblem;
+import org.jgap.gp.IGPProgram;
 import org.jgap.gp.function.ADF;
 import org.jgap.gp.function.Abs;
 import org.jgap.gp.function.Add;
@@ -34,6 +36,7 @@ import org.jgap.gp.terminal.Constant;
 import org.jgap.gp.terminal.False;
 import org.jgap.gp.terminal.Terminal;
 import org.jgap.gp.terminal.True;
+import org.jgap.gp.terminal.Variable;
 
 import javafx.embed.swing.SwingFXUtils;
 import javafx.embed.swing.SwingNode;
@@ -81,6 +84,7 @@ public class MainController {
 	@FXML TextField ReproduceTF;
 	@FXML TextField MutateTF;
 	@FXML TextField NewChromTF;
+	@FXML TextField TrainingPerTF;
 	@FXML VBox SnapShotPreviewVB;
 	@FXML CheckBox AddCB;
 	@FXML CheckBox MultiplyCB;
@@ -112,16 +116,23 @@ public class MainController {
 		this.main = main;
 		try {
 			myModel									= new Processor();	
-			myModel.uiWin							= this;
+			myModel.uiWin							= this;			
+			myModel.initialiseColumns();
+			myModel.constructTrainAndTestSets(0.75);
+			myModel.populateTrainingInputsAndOutput();
+			myModel.writeTrainingAndTestSetsToFile();
+			appendToStatusText("Data Set Split it to Test & Training Sets:\nTrainingSet="+
+					myModel.trainingSet.size()+"\nTestSet="+myModel.testSet.size()+"\nTotal Instances="
+					+(myModel.trainingSet.size()+myModel.testSet.size()));
+			
 		} catch (InvalidConfigurationException e) {			
 			e.printStackTrace();
 		}
 //        loadDataSet();
-		myModel.getInputsFromFile();
 		setupLearningCurveChart();
 		LearningCurveBox.getChildren().add(lineChart);
 		LearningCurveBox.setVgrow(lineChart, Priority.ALWAYS);
-		drawDataSet();
+		
 		
      
         
@@ -138,10 +149,29 @@ public class MainController {
 		appendToStatusText(myModel.outputSolution(myModel.gp.getAllTimeBest()));
 
 	}
+	public void reportAllIndividuals() {
+		for (IGPProgram pr :myModel.gp.getGPPopulation().getGPPrograms()) {
+            for (Entry<Integer,Variable> entry:myModel.variablesColumnMapping.entrySet()) {
+            	Variable variable 		= entry.getValue();
+            	Integer indexOfValue	= entry.getKey();
+            	variable.set(myModel.inputsColumnMapping.get(indexOfValue).get(1));
+            }			
+			System.out.println(pr.getFitnessValue()+ pr.toStringNorm(0)
+			+"Output = "+pr.execute_int(0, new Object[0])+" Class= "+myModel.OUTPUT.get(1));
+		}
+	}
 	public void initPopulation() {
 		try {
 			myModel						= new Processor();
-			myModel.uiWin				= this;			
+			myModel.uiWin				= this;
+			myModel.initialiseColumns();
+			myModel.constructTrainAndTestSets(Float.parseFloat(TrainingPerTF.getText()));
+			myModel.populateTrainingInputsAndOutput();
+			myModel.writeTrainingAndTestSetsToFile();
+			appendToStatusText("Data Set Split it to Test & Training Sets:\nTrainingSet="+
+					myModel.trainingSet.size()+"\nTestSet="+myModel.testSet.size()+"\nTotal Instances="
+					+(myModel.trainingSet.size()+myModel.testSet.size()));
+			
 			myModel.config.setMinInitDepth(Integer.parseInt(MinDepthTF.getText()));
 			myModel.config.setMaxInitDepth(Integer.parseInt(MaxDepthTF.getText()));
 			myModel.config.setPopulationSize(Integer.parseInt(PopSizeTF.getText()));
@@ -154,10 +184,9 @@ public class MainController {
 		} catch (InvalidConfigurationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		myModel.getInputsFromFile();
+		}		
 		myModel.initialisePopulation();
-		drawDataSet();
+		
 	}
 	
 	public void resampleLearningCurve() {
@@ -195,7 +224,7 @@ public class MainController {
 		
 		XYChart.Series<Number,Number> series 	= new XYChart.Series<>();
 		series.setName("Predicted Data Set");
-		ArrayList<Double> predictedOutput		= myModel.generateCheckPoints();
+		ArrayList<Integer> predictedOutput		= myModel.generateCheckPoints();
 		for(int i=0; i<myModel.INPUT_1.size();i++) {			
 			series.getData().add(new XYChart.Data(myModel.INPUT_1.get(i), predictedOutput.get(i)));
 		}
@@ -254,20 +283,20 @@ public class MainController {
     public ArrayList<CommandGene> createTerminalsAndFunctionsFromUI(GPConfiguration config) throws InvalidConfigurationException{
     	ArrayList<CommandGene> terminalsAndFunctions = new ArrayList<>();
     	if (AddCB.isSelected()) {
-    		terminalsAndFunctions.add(new Add(config, CommandGene.DoubleClass));
+    		terminalsAndFunctions.add(new Add(config, CommandGene.IntegerClass));
 //    		terminalsAndFunctions.add(new ADF(config,1,0));
     	}
     	if (MultiplyCB.isSelected()) {
-    		terminalsAndFunctions.add(new Multiply(config, CommandGene.DoubleClass));    		
+    		terminalsAndFunctions.add(new Multiply(config, CommandGene.IntegerClass));    		
     	}
     	if (DivideCB.isSelected()) {
-    		terminalsAndFunctions.add(new Divide(config, CommandGene.DoubleClass));
+    		terminalsAndFunctions.add(new Divide(config, CommandGene.IntegerClass));
     	}
     	if (SubtractCB.isSelected()) {
-    		terminalsAndFunctions.add(new Subtract(config, CommandGene.DoubleClass));
+    		terminalsAndFunctions.add(new Subtract(config, CommandGene.IntegerClass));
     	}    	
     	if (PowCB.isSelected()) {
-    		terminalsAndFunctions.add(new Pow(config, CommandGene.DoubleClass));
+    		terminalsAndFunctions.add(new Pow(config, CommandGene.IntegerClass));
     	}  
     	if (ExpCB.isSelected()) {
     		terminalsAndFunctions.add(new Exp(config, CommandGene.DoubleClass));
@@ -276,7 +305,7 @@ public class MainController {
     		terminalsAndFunctions.add(new Log(config, CommandGene.DoubleClass));
     	}    	
     	if (AbsCB.isSelected()) {
-    		terminalsAndFunctions.add(new Abs(config, CommandGene.DoubleClass));
+    		terminalsAndFunctions.add(new Abs(config, CommandGene.IntegerClass));
     	}    	
     	if (IfCB.isSelected()) {
     		terminalsAndFunctions.add(new Switch(config, CommandGene.BooleanClass));
@@ -294,16 +323,16 @@ public class MainController {
     		terminalsAndFunctions.add(new Equals(config, CommandGene.DoubleClass));
     	}    
     	if (Constant1CB.isSelected()) {
-    		terminalsAndFunctions.add(new Constant(config, CommandGene.DoubleClass,1.0));
+    		terminalsAndFunctions.add(new Constant(config, CommandGene.IntegerClass,1));
     	}
     	if (Constant2CB.isSelected()) {
-    		terminalsAndFunctions.add(new Constant(config, CommandGene.DoubleClass,2.0));
+    		terminalsAndFunctions.add(new Constant(config, CommandGene.IntegerClass,2));
     	}
     	if (RandomIntCB.isSelected()) {
-    		terminalsAndFunctions.add(new Terminal(config, CommandGene.DoubleClass, 0.0, 50, true));
+    		terminalsAndFunctions.add(new Terminal(config, CommandGene.IntegerClass, 0, 50, true));
     	}
     	if (RandomDoubleCB.isSelected()) {
-    		terminalsAndFunctions.add(new Terminal(config, CommandGene.DoubleClass, 0.0, 50, false));
+    		terminalsAndFunctions.add(new Terminal(config, CommandGene.IntegerClass, 0, 50, false));
     	}
     	return terminalsAndFunctions;
     }

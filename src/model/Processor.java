@@ -4,10 +4,18 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import javax.swing.tree.TreeNode;
 
@@ -95,11 +103,12 @@ public class Processor  extends GPProblem {
     public Processor() throws InvalidConfigurationException {
         super(new GPConfiguration());
         Configuration.reset();
-        _xVariable = Variable.create(config, "X", CommandGene.DoubleClass);
+//        GPConfiguration config = getGPConfiguration();
+//        _xVariable = Variable.create(config, "X", CommandGene.DoubleClass);
         
 
-        config.setGPFitnessEvaluator(new DeltaGPFitnessEvaluator()); // Lower Numbers from Fitness Function Is Better
-//        config.setGPFitnessEvaluator(new DefaultGPFitnessEvaluator()); // Higher Numbers from Fitness Function Is Better
+//        config.setGPFitnessEvaluator(new DeltaGPFitnessEvaluator()); // Lower Numbers from Fitness Function Is Better
+        config.setGPFitnessEvaluator(new DefaultGPFitnessEvaluator()); // Higher Numbers from Fitness Function Is Better
         config.setMinInitDepth(2);
         config.setMaxInitDepth(6);
         config.setPopulationSize(1000);
@@ -112,9 +121,9 @@ public class Processor  extends GPProblem {
         config.setNewChromsPercent((float)0.3);
         config.setPreservFittestIndividual(true);
         config.setKeepPopulationSizeConstant(true);
-//        config.setProgramCreationMaxTries(-1);
-//        config.setFitnessFunction(new RegressionFitnessFunction(INPUT_1, OUTPUT, _xVariable));
-        config.setStrictProgramCreation(true);
+//        config.setProgramCreationMaxTries(20);
+        config.setFitnessFunction(new ClassificationFitnessFunction(inputsColumnMapping, OUTPUT, variablesColumnMapping));
+//        config.setStrictProgramCreation(true);
     }
 
     
@@ -206,7 +215,7 @@ public class Processor  extends GPProblem {
 //        GPConfiguration config = getGPConfiguration();
 
         // The return type of the GP program.
-        Class[] types = { CommandGene.DoubleClass};
+        Class[] types = { CommandGene.IntegerClass};
 
         // Arguments of result-producing chromosome: none
         Class[][] argTypes = { {} };
@@ -216,8 +225,11 @@ public class Processor  extends GPProblem {
         CommandGene[][] nodeSetsUi = null;
         if (uiWin!=null) {
             ArrayList<CommandGene> terminalsAndFunctions = createTerminalsAndFunctionsFromUI();
-            terminalsAndFunctions.add(_xVariable);
-            nodeSetsUi = new CommandGene[1][terminalsAndFunctions.size()];
+            for (Entry<Integer, Variable> entry:variablesColumnMapping.entrySet()) {
+            	terminalsAndFunctions.add(entry.getValue());
+            	System.out.println("ADDING INPUT "+entry.getValue().getName());
+            }
+            nodeSetsUi = new CommandGene[1][terminalsAndFunctions.size()]; //Create empty list
             
             for (int i=0;i<terminalsAndFunctions.size();i++) {
             	nodeSetsUi[0][i]			= terminalsAndFunctions.get(i);
@@ -226,27 +238,8 @@ public class Processor  extends GPProblem {
 
         CommandGene[][] nodeSets = {
                 {
-                    _xVariable,                
-                    new Add(config, CommandGene.DoubleClass),
-                    new Multiply(config, CommandGene.DoubleClass),
-//                    new Abs(config,CommandGene.DoubleClass),
-                    new Divide(config,CommandGene.DoubleClass),
-                    new Subtract(config,CommandGene.DoubleClass),
-//                    new Log(config,CommandGene.DoubleClass),
-                    new Pow(config,CommandGene.DoubleClass),
-                    new Switch(config,CommandGene.DoubleClass),
-                    new GreaterThan(config,CommandGene.DoubleClass),
-                    new LesserThan(config,CommandGene.DoubleClass),
-                    new Equals(config,CommandGene.DoubleClass),
-                    new Constant(config, CommandGene.DoubleClass,1.0),
-                    new Constant(config, CommandGene.DoubleClass,2.0),
-                    new Terminal(config, CommandGene.DoubleClass, 0.0, 50, true),
-                    new Terminal(config, CommandGene.DoubleClass, 0.0, 50, false)
                 }
             };        
-                
-                
-
         GPGenotype result ;
         if (uiWin !=null) {
         		result 			= GPGenotype.randomInitialGenotype(config, types, argTypes,
@@ -254,10 +247,8 @@ public class Processor  extends GPProblem {
         		System.out.println("Adding EventLister");
         		config.getEventManager().addEventListener(GeneticEvent.
         				GENOTYPE_EVOLVED_EVENT, new GeneticEventListener() {
-
 							@Override
 							public void geneticEventFired(GeneticEvent a_firedEvent) {
-								System.out.println("AAAAAAAAAAAAAAAAAAAA");
 						    	Platform.runLater(()->uiWin.drawDataSet());
 						    	Platform.runLater(()->uiWin.drawPredictedSet()); 								
 							}
@@ -287,24 +278,57 @@ public class Processor  extends GPProblem {
     	epochCounter++;
     	System.out.println("Epoch:"+epochCounter);
     	gp.evolve(1);
-    	Platform.runLater(()->uiWin.drawDataSet());
-    	Platform.runLater(()->uiWin.drawPredictedSet());    	
+//    	generateCheckPoints();
+//    	Platform.runLater(()->uiWin.drawDataSet());
+//    	Platform.runLater(()->uiWin.drawPredictedSet());    	
 //		uiWin.drawDataSet();
 //		uiWin.drawPredictedSet();    	
-//    	gp.outputSolution(gp.getAllTimeBest());
+    	gp.outputSolution(gp.getAllTimeBest());
     }
     	
     }
-    public ArrayList<Double> generateCheckPoints() {
+    public ArrayList<Integer> generateCheckPoints() {
         
     	IGPProgram bestP 			= gp.getAllTimeBest();
-    	ArrayList<Double> predictOutputs	= new ArrayList<>();
-    	for (Double input:INPUT_1) {
-            this.getGPConfiguration().getVariable("X").set(input);        
-            predictOutputs.add(bestP.execute_double(0,new Object[0]));
+    	
+    	for(IGPProgram pr :gp.getGPPopulation().getGPPrograms()) {
+    		System.out.println(outputSolution(pr));
     	}
+    	ArrayList<Integer> predictOutputs	= new ArrayList<>();
+//    	for (Double input:INPUT_1) {
+//            this.getGPConfiguration().getVariable("X").set(input);        
+//            predictOutputs.add(bestP.execute_int(0,new Object[0]));
+//    	}
     	return predictOutputs;
     	
+    }
+    public void writeTrainingAndTestSetsToFile() {
+		List<String> lines 							=new ArrayList<String>();
+		for (ArrayList<Integer> instance:trainingSet) {			
+			String listString						= instance.toString();
+			listString								= listString.substring(1, listString.length()-1).replace(" ", ""); 
+			lines.add(listString);
+//			System.out.println("AddingLIne>>"+listString);
+		}
+		Path file = Paths.get("trainingData.txt");
+		try {
+			Files.write(file, lines, Charset.forName("UTF-8"));
+		} catch (IOException e) {			
+			e.printStackTrace();
+		}
+		lines.clear();
+		for (ArrayList<Integer> instance:testSet) {			
+			String listString						= instance.toString();
+			listString								= listString.substring(1, listString.length()-1).replace(" ", ""); 
+			lines.add(listString);
+//			System.out.println("AddingLIne>>"+listString);
+		}
+		file = Paths.get("testData.txt");
+		try {
+			Files.write(file, lines, Charset.forName("UTF-8"));
+		} catch (IOException e) {			
+			e.printStackTrace();
+		}	    	
     }
     public void populateTrainingInputsAndOutput() {
     	for(ArrayList<Integer> trainingInstance:trainingSet) {
@@ -383,9 +407,10 @@ public class Processor  extends GPProblem {
 	public static void test() throws InvalidConfigurationException {
 		Processor problem = new Processor();
 		problem.initialiseColumns();
-		problem.constructTrainAndTestSets(0.1);		
-		System.out.println(699.0*0.1);
+		problem.constructTrainAndTestSets(0.75);		
+//		System.out.println(699.0*0.1);
 		problem.populateTrainingInputsAndOutput();
+		problem.writeTrainingAndTestSetsToFile();
 	}
     public static void main(String[] args) throws Exception {
     	test();

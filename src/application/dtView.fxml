@@ -28,7 +28,7 @@
                      <children>
                         <Button alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#initPopulation" prefWidth="755.0" text="Init Population" />
                         <Button alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#evoloveForEpochs" prefHeight="39.0" prefWidth="755.0" text="Evolve for N Epochs" />
-                        <Button alignment="BASELINE_LEFT" mnemonicParsing="false" prefWidth="755.0" text="GetFittestIndividual" />
+                        <Button alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#reportAllIndividuals" prefWidth="755.0" text="Report All Individuals" />
                         <Button alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#saveSnapShot" prefWidth="755.0" text="Save SnapShot" />
                         <TextArea fx:id="StatusTA" maxWidth="-Infinity" prefHeight="457.0" prefWidth="755.0" wrapText="true" VBox.vgrow="ALWAYS" />
                      </children>
@@ -74,6 +74,12 @@
                         <TextField fx:id="MinDepthTF" prefWidth="62.0" text="2" />
                         <Label text="Population Size" />
                         <TextField fx:id="PopSizeTF" prefWidth="62.0" text="1000" />
+                        <Label text="TrainingSet%">
+                           <padding>
+                              <Insets left="10.0" right="10.0" />
+                           </padding>
+                        </Label>
+                        <TextField id="KnnTF" fx:id="TrainingPerTF" maxWidth="62.0" text="0.75" />
                      </children>
                   </HBox>
                   <Separator prefWidth="200.0" />
