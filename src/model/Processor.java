@@ -227,7 +227,7 @@ public class Processor  extends GPProblem {
             ArrayList<CommandGene> terminalsAndFunctions = createTerminalsAndFunctionsFromUI();
             for (Entry<Integer, Variable> entry:variablesColumnMapping.entrySet()) {
             	terminalsAndFunctions.add(entry.getValue());
-            	System.out.println("ADDING INPUT "+entry.getValue().getName());
+            	System.out.println("ADDING INPUT "+entry.getKey()+entry.getValue().getName());
             }
             nodeSetsUi = new CommandGene[1][terminalsAndFunctions.size()]; //Create empty list
             
@@ -238,23 +238,29 @@ public class Processor  extends GPProblem {
 
         CommandGene[][] nodeSets = {
                 {
+                    variablesColumnMapping.get(1),
+                    variablesColumnMapping.get(2),
+                    variablesColumnMapping.get(3),
+                    variablesColumnMapping.get(4),
+                    variablesColumnMapping.get(5),
+                    variablesColumnMapping.get(6),
+                    variablesColumnMapping.get(7),
+                    variablesColumnMapping.get(8),
+                    variablesColumnMapping.get(9),                    
+                    new Add(config, CommandGene.DoubleClass),
+                    new Multiply(config, CommandGene.DoubleClass),
+                    new Terminal(config, CommandGene.DoubleClass, -10.0, 10.0, false),
+                    new Constant(config, CommandGene.DoubleClass, 1.0)
                 }
             };        
         GPGenotype result ;
         if (uiWin !=null) {
         		result 			= GPGenotype.randomInitialGenotype(config, types, argTypes,
         				nodeSetsUi, uiWin.getMaxNodes(), true);
-        		System.out.println("Adding EventLister");
-        		config.getEventManager().addEventListener(GeneticEvent.
-        				GENOTYPE_EVOLVED_EVENT, new GeneticEventListener() {
-							@Override
-							public void geneticEventFired(GeneticEvent a_firedEvent) {
-						    	Platform.runLater(()->uiWin.drawDataSet());
-						    	Platform.runLater(()->uiWin.drawPredictedSet()); 								
-							}
-        			
-        		});
+
         }else {
+        	
+        		System.out.println("CHECKING"+argTypes);
             	result 			= GPGenotype.randomInitialGenotype(config, types, argTypes,
                     			nodeSets, 15, true);
         	
@@ -268,6 +274,7 @@ public class Processor  extends GPProblem {
 			epochCounter		= 0;
 		} catch (InvalidConfigurationException e) {
 			// TODO Auto-generated catch block
+			System.out.println("ERRORRR!!!!!");
 			e.printStackTrace();
 		}
         gp.setVerboseOutput(true);
@@ -383,13 +390,17 @@ public class Processor  extends GPProblem {
 	public static void test() throws InvalidConfigurationException {
 		Processor problem = new Processor();
 		problem.initialiseColumns();
-		problem.constructTrainAndTestSets(0.75);		
+		problem.constructTrainAndTestSets(0.5);		
 //		System.out.println(699.0*0.1);
 		problem.populateTrainingInputsAndOutput();
 		problem.writeTrainingAndTestSetsToFile();
+		problem.initialisePopulation();
+		problem.evolveForNEpochs(50);
+	
 	}
     public static void main(String[] args) throws Exception {
     	test();
+    	
 //        GPProblem problem = new Processor();
 //        
 //        GPGenotype gp = problem.create();

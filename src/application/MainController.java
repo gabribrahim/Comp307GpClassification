@@ -129,9 +129,9 @@ public class MainController {
 			e.printStackTrace();
 		}
 //        loadDataSet();
-		setupLearningCurveChart();
-		LearningCurveBox.getChildren().add(lineChart);
-		LearningCurveBox.setVgrow(lineChart, Priority.ALWAYS);
+//		setupLearningCurveChart();
+//		LearningCurveBox.getChildren().add(lineChart);
+//		LearningCurveBox.setVgrow(lineChart, Priority.ALWAYS);
 		
 		
      
@@ -149,7 +149,7 @@ public class MainController {
 		appendToStatusText(myModel.outputSolution(myModel.gp.getAllTimeBest()));
 
 	}
-	public void reportAllIndividuals() {
+	public void reportAllIndividuals1() {
 		for (IGPProgram pr :myModel.gp.getGPPopulation().getGPPrograms()) {
             for (Entry<Integer,Variable> entry:myModel.variablesColumnMapping.entrySet()) {
             	Variable variable 		= entry.getValue();
@@ -159,6 +159,16 @@ public class MainController {
 			System.out.println(pr.getFitnessValue()+ pr.toStringNorm(0)
 			+"Output = "+pr.execute_double(0, new Object[0])+" Class= "+myModel.OUTPUT.get(1));
 		}
+	}
+	public void reportAllIndividuals() throws InvalidConfigurationException {
+		Processor problem = new Processor();
+		problem.initialiseColumns();
+		problem.constructTrainAndTestSets(0.5);		
+//		System.out.println(699.0*0.1);
+		problem.populateTrainingInputsAndOutput();
+		problem.writeTrainingAndTestSetsToFile();
+		problem.initialisePopulation();
+		problem.evolveForNEpochs(100);		
 	}
 	public void initPopulation() {
 		try {
