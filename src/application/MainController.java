@@ -157,7 +157,7 @@ public class MainController {
             	variable.set(myModel.inputsColumnMapping.get(indexOfValue).get(1));
             }			
 			System.out.println(pr.getFitnessValue()+ pr.toStringNorm(0)
-			+"Output = "+pr.execute_int(0, new Object[0])+" Class= "+myModel.OUTPUT.get(1));
+			+"Output = "+pr.execute_double(0, new Object[0])+" Class= "+myModel.OUTPUT.get(1));
 		}
 	}
 	public void initPopulation() {
@@ -283,20 +283,20 @@ public class MainController {
     public ArrayList<CommandGene> createTerminalsAndFunctionsFromUI(GPConfiguration config) throws InvalidConfigurationException{
     	ArrayList<CommandGene> terminalsAndFunctions = new ArrayList<>();
     	if (AddCB.isSelected()) {
-    		terminalsAndFunctions.add(new Add(config, CommandGene.IntegerClass));
+    		terminalsAndFunctions.add(new Add(config, CommandGene.DoubleClass));
 //    		terminalsAndFunctions.add(new ADF(config,1,0));
     	}
     	if (MultiplyCB.isSelected()) {
-    		terminalsAndFunctions.add(new Multiply(config, CommandGene.IntegerClass));    		
+    		terminalsAndFunctions.add(new Multiply(config, CommandGene.DoubleClass));    		
     	}
     	if (DivideCB.isSelected()) {
-    		terminalsAndFunctions.add(new Divide(config, CommandGene.IntegerClass));
+    		terminalsAndFunctions.add(new Divide(config, CommandGene.DoubleClass));
     	}
     	if (SubtractCB.isSelected()) {
-    		terminalsAndFunctions.add(new Subtract(config, CommandGene.IntegerClass));
+    		terminalsAndFunctions.add(new Subtract(config, CommandGene.DoubleClass));
     	}    	
     	if (PowCB.isSelected()) {
-    		terminalsAndFunctions.add(new Pow(config, CommandGene.IntegerClass));
+    		terminalsAndFunctions.add(new Pow(config, CommandGene.DoubleClass));
     	}  
     	if (ExpCB.isSelected()) {
     		terminalsAndFunctions.add(new Exp(config, CommandGene.DoubleClass));
@@ -305,7 +305,7 @@ public class MainController {
     		terminalsAndFunctions.add(new Log(config, CommandGene.DoubleClass));
     	}    	
     	if (AbsCB.isSelected()) {
-    		terminalsAndFunctions.add(new Abs(config, CommandGene.IntegerClass));
+    		terminalsAndFunctions.add(new Abs(config, CommandGene.DoubleClass));
     	}    	
     	if (IfCB.isSelected()) {
     		terminalsAndFunctions.add(new Switch(config, CommandGene.BooleanClass));
@@ -323,16 +323,16 @@ public class MainController {
     		terminalsAndFunctions.add(new Equals(config, CommandGene.DoubleClass));
     	}    
     	if (Constant1CB.isSelected()) {
-    		terminalsAndFunctions.add(new Constant(config, CommandGene.IntegerClass,1));
+    		terminalsAndFunctions.add(new Constant(config, CommandGene.DoubleClass,1.0));
     	}
     	if (Constant2CB.isSelected()) {
-    		terminalsAndFunctions.add(new Constant(config, CommandGene.IntegerClass,2));
+    		terminalsAndFunctions.add(new Constant(config, CommandGene.DoubleClass,2.0));
     	}
     	if (RandomIntCB.isSelected()) {
-    		terminalsAndFunctions.add(new Terminal(config, CommandGene.IntegerClass, 0, 50, true));
+    		terminalsAndFunctions.add(new Terminal(config, CommandGene.DoubleClass, -10.0, 10.0, true));
     	}
     	if (RandomDoubleCB.isSelected()) {
-    		terminalsAndFunctions.add(new Terminal(config, CommandGene.IntegerClass, 0, 50, false));
+    		terminalsAndFunctions.add(new Terminal(config, CommandGene.DoubleClass, -10.0, 10.0, false));
     	}
     	return terminalsAndFunctions;
     }

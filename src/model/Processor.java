@@ -60,36 +60,36 @@ public class Processor  extends GPProblem {
     @SuppressWarnings("boxing")
     public static  ArrayList<Double>INPUT_2 = new ArrayList<>(Arrays.asList( 35.0d, 24.0d, 1.0d, 11.0d, 16.0d));
 
-    public static  ArrayList<Integer> OUTPUT = new ArrayList<>();
+    public static  ArrayList<Double> OUTPUT = new ArrayList<>();
     public GPConfiguration config = getGPConfiguration();
     private Variable _xVariable;
     private Variable _yVariable;
     
     // Each Feature has Instance & ArrayList [ sameName+Capital I]
     private Variable clumpThickness;
-    public ArrayList<Integer> clumpThicknessI			= new ArrayList<>();
+    public ArrayList<Double> clumpThicknessI			= new ArrayList<>();
     private Variable uCellSize;
-    public ArrayList<Integer> uCellSizeI 				= new ArrayList<>();
+    public ArrayList<Double> uCellSizeI 				= new ArrayList<>();
     private Variable uCellShape;
-    public ArrayList<Integer> uCellShapeI 				= new ArrayList<>();
+    public ArrayList<Double> uCellShapeI 				= new ArrayList<>();
     private Variable mAdhesion;
-    public ArrayList<Integer> mAdhesionI 				= new ArrayList<>();
+    public ArrayList<Double> mAdhesionI 				= new ArrayList<>();
     private Variable seCellSize;
-    public ArrayList<Integer> seCellSizeI 				= new ArrayList<>();
+    public ArrayList<Double> seCellSizeI 				= new ArrayList<>();
     private Variable bNuclei;
-    public ArrayList<Integer> bNucleiI 					= new ArrayList<>();
+    public ArrayList<Double> bNucleiI 					= new ArrayList<>();
     private Variable bChromatin;
-    public ArrayList<Integer> bChromatinI 				= new ArrayList<>();
+    public ArrayList<Double> bChromatinI 				= new ArrayList<>();
     private Variable nNuclei;
-    public ArrayList<Integer> nNucleiI 					= new ArrayList<>();
+    public ArrayList<Double> nNucleiI 					= new ArrayList<>();
     private Variable mitosis;
-    public ArrayList<Integer> mitosisI 					= new ArrayList<>();
+    public ArrayList<Double> mitosisI 					= new ArrayList<>();
     
     // Training & Test Data Sets
-    public ArrayList<ArrayList<Integer>> trainingSet 	= new ArrayList<>();
-    public ArrayList<ArrayList<Integer>> testSet		= new ArrayList<>();
+    public ArrayList<ArrayList<Double>> trainingSet 	= new ArrayList<>();
+    public ArrayList<ArrayList<Double>> testSet		= new ArrayList<>();
     //Inputs are mapped to their column in the file in the LinkedHashMap below {used in Fitness Calculation}
-    public LinkedHashMap<Integer,ArrayList<Integer>> inputsColumnMapping = new LinkedHashMap<>();
+    public LinkedHashMap<Integer,ArrayList<Double>> inputsColumnMapping = new LinkedHashMap<>();
     //Variables are mapped to their column in the file in the LinkedHashMap below {used in Fitness Calculation}
     public LinkedHashMap<Integer,Variable> variablesColumnMapping = new LinkedHashMap<>();
     
@@ -128,15 +128,15 @@ public class Processor  extends GPProblem {
 
     
 	public void initialiseColumns() throws InvalidConfigurationException {
-	    clumpThickness						= Variable.create(config, "clumpThickness", CommandGene.IntegerClass);
-	    uCellSize							= Variable.create(config, "uCellSize", CommandGene.IntegerClass);
-	    uCellShape							= Variable.create(config, "uCellShape", CommandGene.IntegerClass);
-	    mAdhesion							= Variable.create(config, "mAdhesion", CommandGene.IntegerClass);
-	    seCellSize							= Variable.create(config, "seCellSize", CommandGene.IntegerClass);
-	    bNuclei								= Variable.create(config, "bNuclei", CommandGene.IntegerClass);
-	    bChromatin							= Variable.create(config, "bChromatin", CommandGene.IntegerClass);
-	    nNuclei								= Variable.create(config, "nNuclei", CommandGene.IntegerClass);
-	    mitosis								=  Variable.create(config, "mitosis", CommandGene.IntegerClass);
+	    clumpThickness						= Variable.create(config, "clumpThickness", CommandGene.DoubleClass);
+	    uCellSize							= Variable.create(config, "uCellSize", CommandGene.DoubleClass);
+	    uCellShape							= Variable.create(config, "uCellShape", CommandGene.DoubleClass);
+	    mAdhesion							= Variable.create(config, "mAdhesion", CommandGene.DoubleClass);
+	    seCellSize							= Variable.create(config, "seCellSize", CommandGene.DoubleClass);
+	    bNuclei								= Variable.create(config, "bNuclei", CommandGene.DoubleClass);
+	    bChromatin							= Variable.create(config, "bChromatin", CommandGene.DoubleClass);
+	    nNuclei								= Variable.create(config, "nNuclei", CommandGene.DoubleClass);
+	    mitosis								=  Variable.create(config, "mitosis", CommandGene.DoubleClass);
 	    //Column1
 		variablesColumnMapping.put(1, clumpThickness);
 		inputsColumnMapping.put(1, clumpThicknessI);
@@ -215,7 +215,7 @@ public class Processor  extends GPProblem {
 //        GPConfiguration config = getGPConfiguration();
 
         // The return type of the GP program.
-        Class[] types = { CommandGene.IntegerClass};
+        Class[] types = { CommandGene.DoubleClass};
 
         // Arguments of result-producing chromosome: none
         Class[][] argTypes = { {} };
@@ -304,7 +304,7 @@ public class Processor  extends GPProblem {
     }
     public void writeTrainingAndTestSetsToFile() {
 		List<String> lines 							=new ArrayList<String>();
-		for (ArrayList<Integer> instance:trainingSet) {			
+		for (ArrayList<Double> instance:trainingSet) {			
 			String listString						= instance.toString();
 			listString								= listString.substring(1, listString.length()-1).replace(" ", ""); 
 			lines.add(listString);
@@ -317,7 +317,7 @@ public class Processor  extends GPProblem {
 			e.printStackTrace();
 		}
 		lines.clear();
-		for (ArrayList<Integer> instance:testSet) {			
+		for (ArrayList<Double> instance:testSet) {			
 			String listString						= instance.toString();
 			listString								= listString.substring(1, listString.length()-1).replace(" ", ""); 
 			lines.add(listString);
@@ -331,7 +331,7 @@ public class Processor  extends GPProblem {
 		}	    	
     }
     public void populateTrainingInputsAndOutput() {
-    	for(ArrayList<Integer> trainingInstance:trainingSet) {
+    	for(ArrayList<Double> trainingInstance:trainingSet) {
     		for (int i =1;i<=9;i++) {
     			inputsColumnMapping.get(i).add(trainingInstance.get(i));
     		}
@@ -355,12 +355,12 @@ public class Processor  extends GPProblem {
 				BufferedReader bufferedReader		= new BufferedReader(fileReader);){
 				line								= bufferedReader.readLine();
 				while (line!=null) {
-					ArrayList<Integer> instance		= new ArrayList<>();
+					ArrayList<Double> instance		= new ArrayList<>();
 					double randomChoice				= random.nextDouble();
 					String[] lineParts				= line.split(",");
 					for (String str :lineParts) {
-						if (str.equals("?")) {instance.add(-1);continue;}
-						instance.add(Integer.parseInt(str));
+						if (str.equals("?")) {instance.add(-1.0);continue;}
+						instance.add(Double.parseDouble(str));
 					}
 					if (randomChoice<=trainPercentage) {
 						trainingSet.add(instance);
@@ -377,31 +377,7 @@ public class Processor  extends GPProblem {
 		}		
     	System.out.println("Training Set Size="+trainingSet.size()+"\nTest Set Size="+testSet.size());
     }
-	public void getInputsFromFile() {
-		String trainingFilePath		= System.getProperty("user.dir").replace('\\', '/') + "/regression.txt";
-		File fileObj 								= new File(trainingFilePath);
-		String line									="";
-		ArrayList<Integer> outputs					= new ArrayList<>();
-		ArrayList<Double> inputs 					= new ArrayList<>();
-		try (FileReader fileReader = new FileReader(fileObj);
-				BufferedReader bufferedReader		= new BufferedReader(fileReader);){
-				line								= bufferedReader.readLine();
-				while (line!=null) {				
-					String[] lineParts				= line.split(";");
-//					outputs.add(Double.parseDouble(lineParts[1]));
-					inputs.add(Double.parseDouble(lineParts[0]));
-				 	line							= bufferedReader.readLine();
-				}
-		
-		} catch (IOException e) {
-			System.out.println("FILE NOT FOUND !!");
-		}		
-		INPUT_1										= inputs;
-		OUTPUT										= outputs;
-		if (uiWin !=null) {
-				uiWin.appendToStatusText("Inputs= " + INPUT_1+"\nOutput= "+OUTPUT);
-			}
-	}
+
 	
 
 	public static void test() throws InvalidConfigurationException {

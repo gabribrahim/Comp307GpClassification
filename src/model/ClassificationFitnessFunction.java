@@ -9,14 +9,14 @@ import org.jgap.gp.terminal.Variable;
 
 public class ClassificationFitnessFunction extends GPFitnessFunction {
 
-    private LinkedHashMap<Integer,ArrayList<Integer>> inputsColumnMapping;    
+    private LinkedHashMap<Integer,ArrayList<Double>> inputsColumnMapping;    
     private LinkedHashMap<Integer,Variable> variablesColumnMapping;
-    private ArrayList<Integer> _output;
+    private ArrayList<Double> _output;
 
     private static Object[] NO_ARGS = new Object[0];
 
-    public ClassificationFitnessFunction(LinkedHashMap<Integer,ArrayList<Integer>> inputsColumnMapping,
-    		ArrayList<Integer> output, LinkedHashMap<Integer,Variable> variablesColumnMapping) {
+    public ClassificationFitnessFunction(LinkedHashMap<Integer,ArrayList<Double>> inputsColumnMapping,
+    		ArrayList<Double> output, LinkedHashMap<Integer,Variable> variablesColumnMapping) {
     	this.inputsColumnMapping 	= inputsColumnMapping;        
         this._output 				= output;
         this.variablesColumnMapping = variablesColumnMapping;        
@@ -39,11 +39,11 @@ public class ClassificationFitnessFunction extends GPFitnessFunction {
             	variable.set(inputsColumnMapping.get(indexOfValue).get(i));
             }
             // Execute the genetically engineered algorithm
-            double value =  program.execute_int(0, NO_ARGS);
+            double value =  program.execute_double(0, NO_ARGS);
 
             // The closer longResult gets to 0 the better the algorithm.
-            if ((value<=2) && _output.get(i)==2) {correctPredictions++;}
-            if ((value>2) && _output.get(i)==4) {correctPredictions++;}
+            if ((value<=0) && _output.get(i)==2) {correctPredictions++;}
+            if ((value>0) && _output.get(i)==4) {correctPredictions++;}
 //            longResult += Math.abs(value - _output.get(i));
         }
 
