@@ -30,6 +30,8 @@
                         <Button alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#evoloveForEpochs" prefHeight="39.0" prefWidth="755.0" text="Evolve for N Epochs" />
                         <Button alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#reportAllIndividuals" prefWidth="755.0" text="Report All Individuals" />
                         <Button alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#saveSnapShot" prefWidth="755.0" text="Save SnapShot" />
+                        <Button alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#showTree" prefWidth="755.0" text="Show Tree" />
+                        <Button alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#computeTestSetAccuracy" prefWidth="755.0" text="Compute Test Set Accuracy" />
                         <TextArea fx:id="StatusTA" maxWidth="-Infinity" prefHeight="457.0" prefWidth="755.0" wrapText="true" VBox.vgrow="ALWAYS" />
                      </children>
                   </VBox>

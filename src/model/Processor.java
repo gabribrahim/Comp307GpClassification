@@ -139,31 +139,40 @@ public class Processor  extends GPProblem {
 	    mitosis								=  Variable.create(config, "mitosis", CommandGene.DoubleClass);
 	    //Column1
 		variablesColumnMapping.put(1, clumpThickness);
+		clumpThicknessI.clear();
 		inputsColumnMapping.put(1, clumpThicknessI);
 	    //Column2
 		variablesColumnMapping.put(2, uCellSize);
 		inputsColumnMapping.put(2, uCellSizeI);
+		uCellSizeI.clear();
 	    //Column3
 		variablesColumnMapping.put(3, uCellShape);
-		inputsColumnMapping.put(3, uCellShapeI);	
+		inputsColumnMapping.put(3, uCellShapeI);
+		uCellShapeI.clear();
 	    //Column4
 		variablesColumnMapping.put(4, mAdhesion);
 		inputsColumnMapping.put(4, mAdhesionI);
+		mAdhesionI.clear();
 	    //Column5
 		variablesColumnMapping.put(5, seCellSize);
 		inputsColumnMapping.put(5, seCellSizeI);
+		seCellSizeI.clear();
 	    //Column6
 		variablesColumnMapping.put(6, bNuclei);
 		inputsColumnMapping.put(6, bNucleiI);	
+		bNucleiI.clear();
 	    //Column7
 		variablesColumnMapping.put(7, bChromatin);
-		inputsColumnMapping.put(7, bChromatinI);		
+		inputsColumnMapping.put(7, bChromatinI);
+		bChromatinI.clear();
 	    //Column8
 		variablesColumnMapping.put(8, nNuclei);
-		inputsColumnMapping.put(8, nNucleiI);		
+		inputsColumnMapping.put(8, nNucleiI);	
+		nNucleiI.clear();
 	    //Column9
 		variablesColumnMapping.put(9, mitosis);
-		inputsColumnMapping.put(9, mitosisI);		
+		inputsColumnMapping.put(9, mitosisI);	
+		mitosisI.clear();
 		
 	}
     public String outputSolution(IGPProgram a_best) {
@@ -338,6 +347,7 @@ public class Processor  extends GPProblem {
 		}	    	
     }
     public void populateTrainingInputsAndOutput() {
+    	OUTPUT.clear();
     	for(ArrayList<Double> trainingInstance:trainingSet) {
     		for (int i =1;i<=9;i++) {
     			inputsColumnMapping.get(i).add(trainingInstance.get(i));
@@ -353,7 +363,8 @@ public class Processor  extends GPProblem {
     	// As we read the file if random float is less than trainPercentage then add instance 
     	// To Training Data set else add to Test Set
     	// 0.8 trainPercentage if random <0.8 then trainInstance else testInstance
-    	
+    	trainingSet.clear();
+    	testSet.clear();
     	Random random 						= new Random();
 		String trainingFilePath				= System.getProperty("user.dir").replace('\\', '/') + "/breast-cancer-wisconsin.data";
 		File fileObj 						= new File(trainingFilePath);

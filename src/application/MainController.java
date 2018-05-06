@@ -2,6 +2,7 @@ package application;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -57,6 +58,7 @@ import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.HBox;
@@ -110,7 +112,7 @@ public class MainController {
 	public DataSetsLoader myDataLoader = new DataSetsLoader();
 	private int totalEpochsCount				= 0;
 	public LinkedHashMap<Integer, Double> learningcurve=new LinkedHashMap<>();
-		
+	private ImageView imageViewer = new ImageView();					
 	
 	public void setMain(Main main) {
 		this.main = main;
@@ -130,8 +132,8 @@ public class MainController {
 		}
 //        loadDataSet();
 //		setupLearningCurveChart();
-//		LearningCurveBox.getChildren().add(lineChart);
-//		LearningCurveBox.setVgrow(lineChart, Priority.ALWAYS);
+		LearningCurveBox.getChildren().add(imageViewer);
+		LearningCurveBox.setVgrow(imageViewer, Priority.ALWAYS);
 		
 		
      
@@ -147,9 +149,45 @@ public class MainController {
 		myModel.evolveForNEpochs(epochs);
 		StatusLB.setText("Ephoch :"+myModel.epochCounter);
 		appendToStatusText(myModel.outputSolution(myModel.gp.getAllTimeBest()));
-
+//		showTree();
 	}
-	public void reportAllIndividuals1() {
+	public void showTree() {
+		
+		try {
+			myModel.showTree(myModel.gp.getAllTimeBest(), "tmp.png");
+		} catch (InvalidConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		File file = new File("tmp.png");		
+		System.out.println("TreeCreated\n"+file.toURI().toString());
+		Image img =new Image(file.toURI().toString());;
+
+		imageViewer.setImage(img);
+		imageViewer.setFitHeight(500);
+		imageViewer.setFitWidth(700);
+		imageViewer.setPreserveRatio(true);
+		
+	}
+	public void computeTestSetAccuracy() {
+		IGPProgram bestProgram 			= myModel.gp.getAllTimeBest();
+		int correctPredictions			= 0;
+		for (ArrayList<Double> testInstance :myModel.testSet) {
+            for (Entry<Integer,Variable> entry:myModel.variablesColumnMapping.entrySet()) {
+            	Variable variable 		= entry.getValue();
+            	Integer indexOfValue	= entry.getKey();
+            	variable.set(testInstance.get(indexOfValue));
+            }
+            double prediction 			= bestProgram.execute_double(0, new Object[0]);
+            if (prediction<0 && testInstance.get(10)==2.0) {correctPredictions++;}
+            if (prediction>0 && testInstance.get(10)==4.0) {correctPredictions++;}
+		}
+		double accuracy					= (double)correctPredictions/(double)myModel.testSet.size();
+		appendToStatusText("Accuracy of Test Set :\nCorrection Predictions = "+correctPredictions
+				+"\nTest Set Size= "+myModel.testSet.size()+"\nAccuracy= "+accuracy);
+				
+	}
+	public void reportAllIndividuals() {
 		for (IGPProgram pr :myModel.gp.getGPPopulation().getGPPrograms()) {
             for (Entry<Integer,Variable> entry:myModel.variablesColumnMapping.entrySet()) {
             	Variable variable 		= entry.getValue();
@@ -160,7 +198,7 @@ public class MainController {
 			+"Output = "+pr.execute_double(0, new Object[0])+" Class= "+myModel.OUTPUT.get(1));
 		}
 	}
-	public void reportAllIndividuals() throws InvalidConfigurationException {
+	public void reportAllIndividuals1() throws InvalidConfigurationException {
 		Processor problem = new Processor();
 		problem.initialiseColumns();
 		problem.constructTrainAndTestSets(0.5);		
